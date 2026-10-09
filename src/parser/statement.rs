@@ -4,6 +4,7 @@ use crate::parser::ast::{Parser, ParserError, Result, Statement, Type};
 impl<'src> Parser<'src> {
     pub(crate) fn parse_declaration(&mut self) -> Result<Statement<'src>> {
         self.expect(Tokens::Let, ParserError::MissingLetStatement)?;
+        self.next();
 
         let vname = match self.next() {
             Some(Tokens::Other(name)) => name,

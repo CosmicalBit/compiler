@@ -1,0 +1,118 @@
+use crate::lexer::scanner::Lexemes;
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Tokens<'a> {
+    Other(&'a str),
+    Integer(i64),
+    GreaterThen,
+    SmalledThen,
+    Ampersant,
+    VerticalBar,
+    FowardSlash,
+    Exclamation,
+    SemiColon,
+    Colon,
+    Comma,
+    Star,
+    Percent,
+    Equals,
+    Caret,
+    Tilde,
+    Dot,
+    Mut,
+    LeftParen,
+    RightParen,
+    LeftBrace,
+    RightBrace,
+    LeftBracket,
+    RightBracket,
+    Let,
+    If,
+    Else,
+    Minus,
+    Arrow,
+    Fn,
+    Struct,
+    Enum,
+    Plus,
+    Type,
+    Match,
+    Const,
+    EqualEqual,
+    GreaterEqual,
+    LessEqual,
+    Or,
+    And,
+}
+#[derive(Clone, Debug)]
+pub(crate) enum Integers {
+    I32,
+    I8,
+    I16,
+    I64,
+    I128,
+    Usize,
+    Isize,
+    U8,
+    U16,
+    U32,
+    U64,
+    U128,
+}
+
+fn classify_scanner<'a>(scanned: &[Lexemes<'a>]) -> Vec<Tokens<'a>> {
+    let mut classified_lexemes = Vec::with_capacity(scanned.len());
+    for item in scanned {
+        let classified = match item {
+            Lexemes::Other(value) => match *value {
+                ">" => Tokens::GreaterThen,
+                "<" => Tokens::SmalledThen,
+                "->" => Tokens::Arrow,
+                "fn" => Tokens::Fn,
+                "let" => Tokens::Let,
+
+                _ => match value.parse::<i64>() {
+                    Ok(integer) => Tokens::Integer(integer),
+                    Err(_) => Tokens::Other(value),
+                },
+            },
+            Lexemes::Ampersant => Tokens::Ampersant,
+            Lexemes::VerticalBar => Tokens::VerticalBar,
+            Lexemes::FowardSlash => Tokens::FowardSlash,
+            Lexemes::Exclamation => Tokens::Exclamation,
+            Lexemes::SemiColon => Tokens::SemiColon,
+            Lexemes::Colon => Tokens::Colon,
+            Lexemes::Comma => Tokens::Comma,
+            Lexemes::Plus => Tokens::Plus,
+            Lexemes::Minus => Tokens::Minus,
+            Lexemes::Star => Tokens::Star,
+            Lexemes::Percent => Tokens::Percent,
+            Lexemes::Equals => Tokens::Equals,
+            Lexemes::EqualEqual => Tokens::EqualEqual,
+            Lexemes::GreaterEqual => Tokens::GreaterEqual,
+            Lexemes::LessEqual => Tokens::LessEqual,
+            Lexemes::Or => Tokens::Or,
+            Lexemes::And => Tokens::And,
+            Lexemes::Caret => Tokens::Caret,
+            Lexemes::Tilde => Tokens::Tilde,
+            Lexemes::Dot => Tokens::Dot,
+            Lexemes::LeftParen => Tokens::LeftParen,
+            Lexemes::RightParen => Tokens::RightParen,
+            Lexemes::LeftBrace => Tokens::LeftBrace,
+            Lexemes::RightBrace => Tokens::RightBrace,
+            Lexemes::LeftBracket => Tokens::LeftBracket,
+            Lexemes::RightBracket => Tokens::RightBracket,
+            Lexemes::Struct => Tokens::Struct,
+            Lexemes::Enum => Tokens::Enum,
+            Lexemes::Type => Tokens::Type,
+            Lexemes::Match => Tokens::Match,
+            Lexemes::Mut => Tokens::Mut,
+            Lexemes::Const => Tokens::Const,
+            Lexemes::If => Tokens::If,
+            Lexemes::Else => Tokens::Else,
+        };
+        classified_lexemes.push(classified);
+    }
+
+    classified_lexemes
+}

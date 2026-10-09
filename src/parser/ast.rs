@@ -94,4 +94,12 @@ pub(crate) struct Function<'src> {
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Type<'src> {
     Named(&'src str),
+    Reference{
+        mutable: bool,
+        inner: Box<Type<'src>>,
+    },
+    Pointer{
+        mutable: bool,
+        inner: Box<Type<'src>>
+    }
 }
