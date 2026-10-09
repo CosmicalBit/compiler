@@ -4,7 +4,7 @@ use crate::parser::ast::{Parser, ParserError, Result, Statement, Type};
 impl<'src> Parser<'src> {
     pub(crate) fn parse_declaration(&mut self) -> Result<Statement<'src>> {
         self.expect(Tokens::Let, ParserError::MissingLetStatement)?;
-        
+
         let vname = match self.next() {
             Some(Tokens::Other(name)) => name,
             _ => return Err(ParserError::MissingVarName),
@@ -15,11 +15,7 @@ impl<'src> Parser<'src> {
             _ => todo!("type inference not added"),
         };
 
-        let vartype = match self.next() {
-            Some(Tokens::Other(vtype)) => vtype,
-            _ => return Err(ParserError::MissingVarType),
-        };
-
+        let vartype = self.parse_type()?;
         match self.next() {
             Some(Tokens::Equals) => (),
             _ => return Err(ParserError::MissingEqualSign),
@@ -33,7 +29,7 @@ impl<'src> Parser<'src> {
         Ok(Statement::Let {
             name: vname,
             value: exp,
-            var_type: Some(Type::Named(vartype)),
+            var_type: Some(vartype),
         })
     }
     pub(crate) fn parse_statement(&mut self) -> Result<Statement<'src>> {
