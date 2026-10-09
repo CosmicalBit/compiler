@@ -1,0 +1,64 @@
+use crate::lexer::classify::Tokens;
+use crate::parser::ast::{Function, Parameter, Parser, ParserError, Result};
+
+impl<'src> Parser<'src> {
+    /// Parse the contents of a function's parentheses.
+    pub(crate) fn parse_parameters(&mut self) -> Result<Vec<Parameter<'src>>> {
+        let mut parameters = Vec::new();
+
+        if matches!(self.peek(), Some(Tokens::RightParen)) {
+            self.next();
+            return Ok(parameters);
+        }
+
+        loop {
+            let name = match self.next() {
+                Some(Tokens::Other(name)) => *name,
+                _ => return Err(ParserError::MissingParameterName),
+            };
+            match self.next() {
+                Some(Tokens::Colon) => (),
+                _ => return Err(ParserError::MissingParameterType),
+            }
+            let var_type = self.parse_type()?;
+            parameters.push(Parameter { name, var_type });
+
+            match self.next() {
+                Some(Tokens::Comma) => continue,
+                Some(Tokens::RightParen) => return Ok(parameters),
+                _ => return Err(ParserError::MissingCommaOrRightParen),
+            }
+        }
+    }
+
+    pub(crate) fn parse_fn(&mut self) -> Result<Function<'src>> {
+        self.expect(Tokens::Fn, ParserError::MissingFn)?;
+        self.next();
+
+        let name = match self.next() {
+            Some(Tokens::Other(name)) => *name,
+            _ => return Err(ParserError::MissingFnName),
+        };
+        match self.next() {
+            Some(Tokens::LeftParen) => (),
+            _ => return Err(ParserError::MissingLeftParen),
+        }
+        let parameters = self.parse_parameters()?;
+        match self.next() {
+            Some(Tokens::Arrow) => (),
+            _ => return Err(ParserError::MissingArrow),
+        }
+        let return_type = self.parse_type()?;
+        if !matches!(self.peek(), Some(Tokens::LeftBrace)) {
+            return Err(ParserError::MissingFunctionBody);
+        }
+        let body = self.parse_block()?;
+
+        Ok(Function {
+            name,
+            parameters,
+            return_type,
+            body,
+        })
+    }
+}

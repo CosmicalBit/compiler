@@ -1,6 +1,7 @@
 use crate::lexer::classify::Tokens;
 use crate::parser::ast::{Parser, ParserError, Result, Statement};
 
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) struct Block<'src> {
     statements: Vec<Statement<'src>>,
 }

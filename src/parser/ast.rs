@@ -6,6 +6,7 @@ pub(crate) struct Parser<'src> {
     pub(crate) tokens: &'src [Tokens<'src>],
     pub(crate) pos: usize,
 }
+
 impl<'src> Parser<'src> {
     pub(crate) fn new(tokens: &'src [Tokens]) -> Self {
         Self { pos: 0, tokens }
@@ -48,6 +49,14 @@ pub(crate) enum BinaryOp {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum ParserError {
+    MissingFnName,
+    MissingFn,
+    MissingParameterName,
+    MissingParameterType,
+    MissingCommaOrRightParen,
+    MissingArrow,
+    MissingFunctionBody,
+    MissingLeftParen,
     MissingLeftBracket,
     MissingLetStatement,
     MissingRightBracket,
@@ -56,8 +65,9 @@ pub(crate) enum ParserError {
     ExpectedExpression,
     MissingRightParen,
     ExpectedLetDeclaration,
-    MissingVarType,
+    MissingType,
 }
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Statement<'src> {
     Let {
         name: &'src str,
@@ -67,6 +77,21 @@ pub(crate) enum Statement<'src> {
     Expression(Expressions<'src>),
 }
 
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct Parameter<'src> {
+    pub(crate) name: &'src str,
+    pub(crate) var_type: Type<'src>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) struct Function<'src> {
+    pub(crate) name: &'src str,
+    pub(crate) parameters: Vec<Parameter<'src>>,
+    pub(crate) return_type: Type<'src>,
+    pub(crate) body: crate::parser::block::Block<'src>,
+}
+  
+#[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Type<'src> {
     Named(&'src str),
 }
