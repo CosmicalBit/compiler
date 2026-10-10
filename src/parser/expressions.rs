@@ -27,6 +27,38 @@ impl<'src> Parser<'src> {
         let mut lhs = self.parse_atom()?;
 
         loop {
+            if matches!(self.peek(), Some(Tokens::LeftParen)) {
+                if 7 < min_bp {
+                    break;
+                }
+                self.next();
+
+                let args = self.parse_arguments()?;
+                lhs = Expressions::Call {
+                    calle: Box::new(lhs),
+                    args,
+                };
+                continue;
+            }
+            if matches!(self.peek(), Some(Tokens::Dot)) {
+                if 7 < min_bp {
+                    break;
+                }
+                //parse .
+                self.next();
+
+                let field = match self.next() {
+                    Some(Tokens::Other(name)) => name,
+                    _ => return Err(ParserError::ExpectedField),
+                };
+
+                lhs = Expressions::FieldAccess {
+                    object: Box::new(lhs),
+                    field,
+                };
+                continue;
+            }
+
             let (op, left_bp, right_bp) = match self.peek() {
                 Some(Tokens::Plus) => (BinaryOp::Add, 1, 2),
                 Some(Tokens::Minus) => (BinaryOp::Sub, 1, 2),
@@ -204,6 +236,115 @@ mod test {
     }
 
     #[test]
+    fn parses_calls_with_arguments_and_trailing_binary_expression() {
+        use super::*;
+        let tokens = vec![
+            Tokens::Other("sum"),
+            Tokens::LeftParen,
+            Tokens::Integer(1),
+            Tokens::Comma,
+            Tokens::Integer(2),
+            Tokens::Plus,
+            Tokens::Integer(3),
+            Tokens::RightParen,
+            Tokens::Star,
+            Tokens::Integer(4),
+        ];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(
+            parser.parse_expression(0),
+            Ok(Expressions::Binary {
+                op: BinaryOp::Mul,
+                left: Box::new(Expressions::Call {
+                    calle: Box::new(Expressions::Identifier("sum")),
+                    args: vec![
+                        Expressions::Integer(1),
+                        Expressions::Binary {
+                            op: BinaryOp::Add,
+                            left: Box::new(Expressions::Integer(2)),
+                            right: Box::new(Expressions::Integer(3)),
+                        },
+                    ],
+                }),
+                right: Box::new(Expressions::Integer(4)),
+            })
+        );
+    }
+
+    #[test]
+    fn parses_chained_calls_and_field_access() {
+        use super::*;
+        let tokens = vec![
+            Tokens::Other("factory"),
+            Tokens::LeftParen,
+            Tokens::RightParen,
+            Tokens::Dot,
+            Tokens::Other("method"),
+            Tokens::LeftParen,
+            Tokens::Integer(9),
+            Tokens::RightParen,
+            Tokens::Dot,
+            Tokens::Other("field"),
+        ];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(
+            parser.parse_expression(0),
+            Ok(Expressions::FieldAccess {
+                object: Box::new(Expressions::Call {
+                    calle: Box::new(Expressions::FieldAccess {
+                        object: Box::new(Expressions::Call {
+                            calle: Box::new(Expressions::Identifier("factory")),
+                            args: vec![],
+                        }),
+                        field: "method",
+                    }),
+                    args: vec![Expressions::Integer(9)],
+                }),
+                field: "field",
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_field_access_without_field_name() {
+        use super::*;
+        let tokens = vec![Tokens::Other("value"), Tokens::Dot];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(parser.parse_expression(0), Err(ParserError::ExpectedField));
+    }
+
+    #[test]
+    fn rejects_call_arguments_without_a_separator_or_closing_parenthesis() {
+        use super::*;
+        let missing_separator = vec![
+            Tokens::Other("f"),
+            Tokens::LeftParen,
+            Tokens::Integer(1),
+            Tokens::Integer(2),
+            Tokens::RightParen,
+        ];
+        let mut parser = Parser::new(&missing_separator);
+        assert_eq!(
+            parser.parse_expression(0),
+            Err(ParserError::MissingCommaOrRightParen)
+        );
+
+        let missing_closer = vec![
+            Tokens::Other("f"),
+            Tokens::LeftParen,
+            Tokens::Integer(1),
+        ];
+        let mut parser = Parser::new(&missing_closer);
+        assert_eq!(
+            parser.parse_expression(0),
+            Err(ParserError::MissingCommaOrRightParen)
+        );
+    }
+
+    #[test]
     fn parses_match_with_integer_and_wildcard_arms() {
         use super::*;
         let tokens = vec![
@@ -269,6 +410,9 @@ mod test {
             Tokens::RightBracket,
         ];
         let mut parser = Parser::new(&tokens);
-        assert_eq!(parser.parse_expression(0), Err(ParserError::MissingFatArrow));
+        assert_eq!(
+            parser.parse_expression(0),
+            Err(ParserError::MissingFatArrow)
+        );
     }
 }

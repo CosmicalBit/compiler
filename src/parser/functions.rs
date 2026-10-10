@@ -1,5 +1,5 @@
 use crate::lexer::classify::Tokens;
-use crate::parser::ast::{Function, Parameter, Parser, ParserError, Result};
+use crate::parser::ast::{Expressions, Function, Parameter, Parser, ParserError, Result};
 
 impl<'src> Parser<'src> {
     /// Parse the contents of a function's parentheses.
@@ -31,6 +31,25 @@ impl<'src> Parser<'src> {
         }
     }
 
+    pub(crate) fn parse_arguments(&mut self) -> Result<Vec<Expressions<'src>>> {
+        let mut args = Vec::new();
+
+        if matches!(self.peek(), Some(Tokens::RightParen)) {
+            self.next();
+            return Ok(args);
+        }
+        loop {
+            let arg = self.parse_expression(0)?;
+
+            args.push(arg);
+
+            match self.next() {
+                Some(Tokens::Comma) => continue,
+                Some(Tokens::RightParen) => return Ok(args),
+                _ => return Err(ParserError::MissingCommaOrRightParen),
+            }
+        }
+    }
     pub(crate) fn parse_fn(&mut self) -> Result<Function<'src>> {
         self.expect(Tokens::Fn, ParserError::MissingFn)?;
         self.next();

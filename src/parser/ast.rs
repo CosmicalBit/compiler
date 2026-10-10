@@ -33,6 +33,10 @@ impl<'src> Parser<'src> {
 pub(crate) enum Expressions<'src> {
     Integer(i64),
     Identifier(&'src str),
+    Call {
+        calle: Box<Expressions<'src>>,
+        args: Vec<Expressions<'src>>,
+    },
     Binary {
         op: BinaryOp,
         left: Box<Expressions<'src>>,
@@ -43,6 +47,11 @@ pub(crate) enum Expressions<'src> {
         then_block: Block<'src>,
         else_branch: Option<Box<Expressions<'src>>>,
     },
+    FieldAccess {
+        object: Box<Expressions<'src>>,
+        field: &'src str,
+    },
+
     Match {
         scruntinne: Box<Expressions<'src>>,
         arms: Vec<MatchArms<'src>>,
@@ -69,6 +78,7 @@ pub(crate) enum BinaryOp {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum ParserError {
+    ExpectedField,
     ExpectedComma,
     ExpectedPattern,
     MissingMatchStatemt,
