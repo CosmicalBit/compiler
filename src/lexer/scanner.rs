@@ -21,6 +21,7 @@ pub enum Lexemes<'a> {
     LeftBrace,
     RightBrace,
     LeftBracket,
+    Tick,
     RightBracket,
     Struct,
     Enum,
@@ -34,10 +35,11 @@ pub enum Lexemes<'a> {
     GreaterEqual,
     LessEqual,
     Or,
+    QuestionMark,
     And,
 }
 
-fn create_lexemes(text: &str) -> Vec<Lexemes> {
+pub(crate) fn create_lexemes<'src>(text: &'src str) -> Vec<Lexemes<'src>> {
     let count = text.split_whitespace().count();
     let mut lexemes_collection = Vec::with_capacity(count);
 
@@ -49,6 +51,7 @@ fn create_lexemes(text: &str) -> Vec<Lexemes> {
             "!" => Lexemes::Exclamation,
             ";" => Lexemes::SemiColon,
             ":" => Lexemes::Colon,
+            "?" => Lexemes::QuestionMark,
             "," => Lexemes::Comma,
             "+" => Lexemes::Plus,
             "-" => Lexemes::Minus,
@@ -77,6 +80,7 @@ fn create_lexemes(text: &str) -> Vec<Lexemes> {
             "const" => Lexemes::Const,
             "if" => Lexemes::If,
             "else" => Lexemes::Else,
+            "'" => Lexemes::Tick,
             other => Lexemes::Other(other),
         };
         lexemes_collection.push(lexeme);

@@ -61,7 +61,7 @@ impl<'src> Parser<'src> {
             if matches!(self.peek(), Some(Tokens::Equals)) {
                 let (left_bp, right_bp) = (1, 1);
 
-                if left_bp < right_bp {
+                if left_bp < min_bp {
                     break;
                 }
                 self.next();

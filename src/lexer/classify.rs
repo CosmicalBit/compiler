@@ -9,7 +9,6 @@ pub enum Tokens<'a> {
     Ampersant,
     VerticalBar,
     FowardSlash,
-    Exclamation,
     FatArrow,
     SemiColon,
     Colon,
@@ -35,6 +34,7 @@ pub enum Tokens<'a> {
     Fn,
     Struct,
     Enum,
+    Tick,
     Plus,
     Type,
     Match,
@@ -44,7 +44,9 @@ pub enum Tokens<'a> {
     LessEqual,
     Or,
     And,
+    ExclamationMark,
     As,
+    QuestionMark,
 }
 #[derive(Clone, Debug)]
 pub(crate) enum Integers {
@@ -62,7 +64,7 @@ pub(crate) enum Integers {
     U128,
 }
 
-fn classify_scanner<'a>(scanned: &[Lexemes<'a>]) -> Vec<Tokens<'a>> {
+pub(crate) fn classify_scanner<'a>(scanned: &[Lexemes<'a>]) -> Vec<Tokens<'a>> {
     let mut classified_lexemes = Vec::with_capacity(scanned.len());
     for item in scanned {
         let classified = match item {
@@ -75,18 +77,21 @@ fn classify_scanner<'a>(scanned: &[Lexemes<'a>]) -> Vec<Tokens<'a>> {
                 "as" => Tokens::As,
                 "match" => Tokens::Match,
                 "=>" => Tokens::FatArrow,
+
                 _ => match value.parse::<i64>() {
                     Ok(integer) => Tokens::Integer(integer),
                     Err(_) => Tokens::Other(value),
                 },
             },
+            Lexemes::QuestionMark => Tokens::QuestionMark,
             Lexemes::Ampersant => Tokens::Ampersant,
             Lexemes::VerticalBar => Tokens::VerticalBar,
             Lexemes::FowardSlash => Tokens::FowardSlash,
-            Lexemes::Exclamation => Tokens::Exclamation,
+            Lexemes::Exclamation => Tokens::ExclamationMark,
             Lexemes::SemiColon => Tokens::SemiColon,
             Lexemes::Colon => Tokens::Colon,
             Lexemes::Comma => Tokens::Comma,
+            Lexemes::Tick => Tokens::Tick,
             Lexemes::Plus => Tokens::Plus,
             Lexemes::Minus => Tokens::Minus,
             Lexemes::Star => Tokens::Star,
