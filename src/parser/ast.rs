@@ -20,6 +20,7 @@ impl<'src> Parser<'src> {
         self.pos += 1;
         Some(token)
     }
+    ///[`expect`] doesnt call self.next() aka doest consume token
     pub(crate) fn expect(&self, expected: Tokens<'src>, err: ParserError) -> Result<()> {
         if self.peek() == Some(&expected) {
             Ok(())

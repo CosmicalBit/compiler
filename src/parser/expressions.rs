@@ -136,6 +136,7 @@ impl<'src> Parser<'src> {
             }
         }
         self.expect(Tokens::RightBracket, ParserError::MissingRightBracket)?;
+        self.next();
         Ok(Expressions::Match {
             scruntinne: Box::new(scruntime),
             arms,
@@ -332,11 +333,7 @@ mod test {
             Err(ParserError::MissingCommaOrRightParen)
         );
 
-        let missing_closer = vec![
-            Tokens::Other("f"),
-            Tokens::LeftParen,
-            Tokens::Integer(1),
-        ];
+        let missing_closer = vec![Tokens::Other("f"), Tokens::LeftParen, Tokens::Integer(1)];
         let mut parser = Parser::new(&missing_closer);
         assert_eq!(
             parser.parse_expression(0),

@@ -25,6 +25,7 @@ impl<'src> Parser<'src> {
         let exp = self.parse_expression(0)?;
 
         //consume semicolon
+        self.expect(Tokens::SemiColon, ParserError::MissingSemicolon);
         self.next();
 
         Ok(Statement::Let {

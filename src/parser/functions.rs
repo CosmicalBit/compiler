@@ -31,6 +31,7 @@ impl<'src> Parser<'src> {
         }
     }
 
+    //parses fucntion arguments aka for calls
     pub(crate) fn parse_arguments(&mut self) -> Result<Vec<Expressions<'src>>> {
         let mut args = Vec::new();
 
@@ -50,7 +51,8 @@ impl<'src> Parser<'src> {
             }
         }
     }
-    pub(crate) fn parse_fn(&mut self) -> Result<Function<'src>> {
+    //parses fn defenition
+    pub(crate) fn parse_fn_definition(&mut self) -> Result<Function<'src>> {
         self.expect(Tokens::Fn, ParserError::MissingFn)?;
         self.next();
 

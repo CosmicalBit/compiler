@@ -25,7 +25,7 @@ impl<'src> Parser<'src> {
             // Everything else starts as an expression.
             let expr = self.parse_expression(0)?;
 
-            if matches!(self.peek(), Some(Tokens::FowardSlash)) {
+            if matches!(self.peek(), Some(Tokens::SemiColon)) {
                 // Replace ForwardSlash with your semicolon token.
                 self.next();
 
