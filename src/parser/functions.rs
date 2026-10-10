@@ -1,9 +1,12 @@
 use crate::lexer::classify::Tokens;
 use crate::parser::ast::{Expressions, Function, Parameter, Parser, ParserError, Result};
-use crate::parser::generic_params::GenericParam;
+
 impl<'src> Parser<'src> {
     /// Parse the contents of a function's parentheses.
-    pub(super) fn parse_named_types(&mut self, end: &Tokens<'src>) -> Result<'src, Vec<Parameter<'src>>> {
+    pub(super) fn parse_named_types(
+        &mut self,
+        end: &Tokens<'src>,
+    ) -> Result<'src, Vec<Parameter<'src>>> {
         let mut parameters = Vec::new();
 
         if self.peek() == Some(end) {

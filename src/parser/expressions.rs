@@ -23,10 +23,24 @@ impl<'src> Parser<'src> {
             _ => Err(ParserError::ExpectedExpression),
         }
     }
+
     pub(super) fn parse_expression(&mut self, min_bp: u8) -> Result<'src, Expressions<'src>> {
         let mut lhs = self.parse_atom()?;
 
         loop {
+            let mut generic_args = Vec::new();
+            if matches!(self.peek(), Some(Tokens::Colon)) {
+                self.expect(Tokens::Colon, ParserError::MissingColon)?;
+                self.expect(Tokens::Less, ParserError::MissingLessSymbol)?;
+                loop {
+                    generic_args.push(self.parse_type()?);
+                    match self.next() {
+                        Some(Tokens::Comma) => continue,
+                        Some(Tokens::Bigger) => break,
+                        _ => return Err(ParserError::MissingGreaterSymbol),
+                    }
+                }
+            }
             if matches!(self.peek(), Some(Tokens::LeftParen)) {
                 if 7 < min_bp {
                     break;
@@ -35,10 +49,14 @@ impl<'src> Parser<'src> {
 
                 let args = self.parse_arguments()?;
                 lhs = Expressions::Call {
+                    generic_args,
                     calle: Box::new(lhs),
                     args,
                 };
                 continue;
+            }
+            if !generic_args.is_empty() {
+                return Err(ParserError::ExpectedExpression);
             }
             if matches!(self.peek(), Some(Tokens::Dot)) {
                 if 7 < min_bp {
@@ -269,6 +287,7 @@ mod test {
             Ok(Expressions::Binary {
                 op: BinaryOp::Mul,
                 left: Box::new(Expressions::Call {
+                    generic_args: vec![],
                     calle: Box::new(Expressions::Identifier("sum")),
                     args: vec![
                         Expressions::Integer(1),
@@ -307,11 +326,13 @@ mod test {
                 object: Box::new(Expressions::Call {
                     calle: Box::new(Expressions::FieldAccess {
                         object: Box::new(Expressions::Call {
+                            generic_args: vec![],
                             calle: Box::new(Expressions::Identifier("factory")),
                             args: vec![],
                         }),
                         field: "method",
                     }),
+                    generic_args: vec![],
                     args: vec![Expressions::Integer(9)],
                 }),
                 field: "field",

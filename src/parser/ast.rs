@@ -41,6 +41,8 @@ pub(super) enum Expressions<'src> {
     Integer(i64),
     Identifier(&'src str),
     Call {
+        generic_args: Vec<Type<'src>>,
+
         calle: Box<Expressions<'src>>,
         args: Vec<Expressions<'src>>,
     },
@@ -100,6 +102,7 @@ pub(super) enum BinaryOp {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum ParserError<'src> {
+    MissingColon,
     EmptyGenericParams,
     EOF,
     MissingLessSymbol,
