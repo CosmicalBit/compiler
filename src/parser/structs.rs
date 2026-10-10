@@ -4,7 +4,7 @@ use crate::{
 };
 
 impl<'src> Parser<'src> {
-    pub(crate) fn parse_struct(&mut self) -> Result<Struct<'src>> {
+    pub(super) fn parse_struct(&mut self) -> Result<Struct<'src>> {
         self.expect(Tokens::Struct, ParserError::MissingStructDefinition)?;
 
         let name = match self.next() {

@@ -2,7 +2,7 @@ use crate::lexer::classify::Tokens;
 use crate::parser::ast::{Parser, ParserError, Result, Type};
 
 impl<'src> Parser<'src> {
-    pub(crate) fn parse_type(&mut self) -> Result<Type<'src>> {
+    pub(super) fn parse_type(&mut self) -> Result<Type<'src>> {
         match self.next() {
             Some(Tokens::Other(typename)) => Ok(Type::Named(typename)),
             Some(Tokens::Ampersant) => {
@@ -54,16 +54,22 @@ mod tests {
         let immutable = [Tokens::Ampersant, Tokens::Other("Item")];
         let mutable = [Tokens::Ampersant, Tokens::Mut, Tokens::Other("Item")];
         let mut parser = Parser::new(&immutable);
-        assert_eq!(parser.parse_type(), Ok(Type::Reference {
-            mutable: false,
-            inner: Box::new(Type::Named("Item")),
-        }));
+        assert_eq!(
+            parser.parse_type(),
+            Ok(Type::Reference {
+                mutable: false,
+                inner: Box::new(Type::Named("Item")),
+            })
+        );
 
         let mut parser = Parser::new(&mutable);
-        assert_eq!(parser.parse_type(), Ok(Type::Reference {
-            mutable: true,
-            inner: Box::new(Type::Named("Item")),
-        }));
+        assert_eq!(
+            parser.parse_type(),
+            Ok(Type::Reference {
+                mutable: true,
+                inner: Box::new(Type::Named("Item")),
+            })
+        );
     }
 
     #[test]
@@ -71,16 +77,22 @@ mod tests {
         let immutable = [Tokens::Star, Tokens::Other("Item")];
         let mutable = [Tokens::Star, Tokens::Mut, Tokens::Other("Item")];
         let mut parser = Parser::new(&immutable);
-        assert_eq!(parser.parse_type(), Ok(Type::Pointer {
-            mutable: false,
-            inner: Box::new(Type::Named("Item")),
-        }));
+        assert_eq!(
+            parser.parse_type(),
+            Ok(Type::Pointer {
+                mutable: false,
+                inner: Box::new(Type::Named("Item")),
+            })
+        );
 
         let mut parser = Parser::new(&mutable);
-        assert_eq!(parser.parse_type(), Ok(Type::Pointer {
-            mutable: true,
-            inner: Box::new(Type::Named("Item")),
-        }));
+        assert_eq!(
+            parser.parse_type(),
+            Ok(Type::Pointer {
+                mutable: true,
+                inner: Box::new(Type::Named("Item")),
+            })
+        );
     }
 
     #[test]
@@ -93,13 +105,16 @@ mod tests {
         ];
         let mut parser = Parser::new(&tokens);
 
-        assert_eq!(parser.parse_type(), Ok(Type::Reference {
-            mutable: true,
-            inner: Box::new(Type::Pointer {
-                mutable: false,
-                inner: Box::new(Type::Named("Item")),
-            }),
-        }));
+        assert_eq!(
+            parser.parse_type(),
+            Ok(Type::Reference {
+                mutable: true,
+                inner: Box::new(Type::Pointer {
+                    mutable: false,
+                    inner: Box::new(Type::Named("Item")),
+                }),
+            })
+        );
         assert_eq!(parser.pos, tokens.len());
     }
 

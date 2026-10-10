@@ -1,8 +1,8 @@
 use crate::lexer::classify::Tokens;
-use crate::parser::ast::{Parser, ParserError, Result, Statement, Type};
+use crate::parser::ast::{Parser, ParserError, Result, Statement};
 
 impl<'src> Parser<'src> {
-    pub(crate) fn parse_declaration(&mut self) -> Result<Statement<'src>> {
+    pub(super) fn parse_declaration(&mut self) -> Result<Statement<'src>> {
         self.expect(Tokens::Let, ParserError::MissingLetStatement)?;
 
         let vname = match self.next() {
@@ -16,10 +16,7 @@ impl<'src> Parser<'src> {
         };
 
         let vartype = self.parse_type()?;
-        match self.next() {
-            Some(Tokens::Equals) => (),
-            _ => return Err(ParserError::MissingEqualSign),
-        }
+        self.expect(Tokens::Equals, ParserError::MissingEqualSign)?;
 
         let exp = self.parse_expression(0)?;
 
@@ -32,17 +29,12 @@ impl<'src> Parser<'src> {
             var_type: Some(vartype),
         })
     }
-    pub(crate) fn parse_statement(&mut self) -> Result<Statement<'src>> {
-        match self.peek() {
-            Some(Tokens::Let) => self.parse_declaration(),
-            _ => todo!("other statements"),
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::parser::ast::Type;
 
     #[test]
     fn parses_let_statement() {
@@ -57,13 +49,13 @@ mod tests {
         ];
         let mut parser = Parser::new(&tokens);
 
-        let statement = parser.parse_statement().unwrap();
+        let statement = parser.parse_declaration().unwrap();
         assert!(matches!(
             statement,
             Statement::Let {
                 name: "answer",
                 value: crate::parser::ast::Expressions::Integer(42),
-                var_type: Some(Type::Named("i64")),
+                var_type: Some(Type::Named("i64")),  
             }
         ));
     }
@@ -77,6 +69,25 @@ mod tests {
             parser.parse_declaration(),
             Err(ParserError::MissingLetStatement)
         ));
+    }
+
+
+    #[test]
+    fn declaration_requires_equal_sign() {
+        let tokens = [
+            Tokens::Let,
+            Tokens::Other("answer"),
+            Tokens::Colon,
+            Tokens::Other("i64"),
+            Tokens::Integer(42),
+        ];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(
+            parser.parse_declaration(),
+            Err(ParserError::MissingEqualSign)
+        );
+        assert_eq!(parser.peek(), Some(&Tokens::Integer(42)));
     }
 
     #[test]

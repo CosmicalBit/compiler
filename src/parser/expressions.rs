@@ -23,7 +23,7 @@ impl<'src> Parser<'src> {
             _ => Err(ParserError::ExpectedExpression),
         }
     }
-    pub(crate) fn parse_expression(&mut self, min_bp: u8) -> Result<Expressions<'src>> {
+    pub(super) fn parse_expression(&mut self, min_bp: u8) -> Result<Expressions<'src>> {
         let mut lhs = self.parse_atom()?;
 
         loop {
@@ -55,6 +55,22 @@ impl<'src> Parser<'src> {
                 lhs = Expressions::FieldAccess {
                     object: Box::new(lhs),
                     field,
+                };
+                continue;
+            }
+            if matches!(self.peek(), Some(Tokens::Equals)) {
+                let (left_bp, right_bp) = (1, 1);
+
+                if left_bp < right_bp {
+                    break;
+                }
+                self.next();
+
+                let value = self.parse_expression(right_bp)?;
+
+                lhs = Expressions::Assignement {
+                    target: Box::new(lhs),
+                    value: Box::new(value),
                 };
                 continue;
             }

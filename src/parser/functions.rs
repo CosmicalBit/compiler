@@ -3,7 +3,7 @@ use crate::parser::ast::{Expressions, Function, Parameter, Parser, ParserError, 
 
 impl<'src> Parser<'src> {
     /// Parse the contents of a function's parentheses.
-    pub(crate) fn parse_named_types(&mut self, end: &Tokens<'src>) -> Result<Vec<Parameter<'src>>> {
+    pub(super) fn parse_named_types(&mut self, end: &Tokens<'src>) -> Result<Vec<Parameter<'src>>> {
         let mut parameters = Vec::new();
 
         if self.peek() == Some(end) {
@@ -24,7 +24,13 @@ impl<'src> Parser<'src> {
             parameters.push(Parameter { name, var_type });
 
             match self.next() {
-                Some(Tokens::Comma) => continue,
+                Some(Tokens::Comma) => {
+                    if self.peek() == Some(end) {
+                        self.next();
+                        return Ok(parameters);
+                    }
+                    continue;
+                }
                 Some(token) if token == end => return Ok(parameters),
                 _ => return Err(ParserError::MissingCommaOrRightParen),
             }
@@ -32,7 +38,7 @@ impl<'src> Parser<'src> {
     }
 
     //parses fucntion arguments aka for calls
-    pub(crate) fn parse_arguments(&mut self) -> Result<Vec<Expressions<'src>>> {
+    pub(super) fn parse_arguments(&mut self) -> Result<Vec<Expressions<'src>>> {
         let mut args = Vec::new();
 
         if matches!(self.peek(), Some(Tokens::RightParen)) {
@@ -52,7 +58,7 @@ impl<'src> Parser<'src> {
         }
     }
     //parses fn defenition
-    pub(crate) fn parse_fn_definition(&mut self) -> Result<Function<'src>> {
+    pub(super) fn parse_fn_definition(&mut self) -> Result<Function<'src>> {
         self.expect(Tokens::Fn, ParserError::MissingFn)?;
 
         let name = match self.next() {

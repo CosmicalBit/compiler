@@ -2,13 +2,13 @@ use crate::lexer::classify::Tokens;
 use crate::parser::ast::{Expressions, Parser, ParserError, Result, Statement};
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct Block<'src> {
+pub(super) struct Block<'src> {
     statements: Vec<Statement<'src>>,
     tail: Option<Box<Expressions<'src>>>,
 }
 
 impl<'src> Parser<'src> {
-    pub(crate) fn parse_block(&mut self) -> Result<Block<'src>> {
+    pub(super) fn parse_block(&mut self) -> Result<Block<'src>> {
         self.expect(Tokens::LeftBrace, ParserError::MissingLeftBrace)?;
 
         let mut statements = Vec::new();
@@ -17,7 +17,7 @@ impl<'src> Parser<'src> {
         while !matches!(self.peek(), Some(Tokens::RightBrace) | None) {
             // Declarations remain statements.
             if matches!(self.peek(), Some(Tokens::Let)) {
-                statements.push(self.parse_statement()?);
+                statements.push(self.parse_declaration()?);
                 continue;
             }
 
