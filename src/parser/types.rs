@@ -5,10 +5,10 @@ impl<'src> Parser<'src> {
     pub(super) fn parse_type(&mut self) -> Result<'src, Type<'src>> {
         match self.next() {
             Some(Tokens::Other(typename)) => {
-                if matches!(self.peek(), Some(Tokens::Less)) {
+                if !matches!(self.peek(), Some(Tokens::Less)) {
                     return Ok(Type::Named(typename));
                 }
-                self.next(); //consume <
+                self.next(); // consume <
                 let mut args = Vec::new();
 
                 loop {
@@ -64,6 +64,48 @@ mod tests {
 
         assert_eq!(parser.parse_type(), Ok(Type::Named("u32")));
         assert_eq!(parser.pos, 1);
+    }
+
+    #[test]
+    fn parses_nested_generic_types() {
+        let tokens = [
+            Tokens::Other("Map"),
+            Tokens::Less,
+            Tokens::Other("Result"),
+            Tokens::Less,
+            Tokens::Other("u32"),
+            Tokens::Comma,
+            Tokens::Other("Box"),
+            Tokens::Less,
+            Tokens::Other("Item"),
+            Tokens::Bigger,
+            Tokens::Bigger,
+            Tokens::Comma,
+            Tokens::Other("String"),
+            Tokens::Bigger,
+        ];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(
+            parser.parse_type(),
+            Ok(Type::Generic {
+                typename: "Map",
+                args: vec![
+                    Type::Generic {
+                        typename: "Result",
+                        args: vec![
+                            Type::Named("u32"),
+                            Type::Generic {
+                                typename: "Box",
+                                args: vec![Type::Named("Item")],
+                            },
+                        ],
+                    },
+                    Type::Named("String"),
+                ],
+            })
+        );
+        assert_eq!(parser.pos, tokens.len());
     }
 
     #[test]

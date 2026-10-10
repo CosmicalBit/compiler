@@ -32,7 +32,6 @@ impl<'src> Parser<'src> {
 
             if matches!(self.peek(), Some(Tokens::Colon)) {
                 self.expect(Tokens::Colon, ParserError::MissingColon)?;
-                self.expect(Tokens::Colon, ParserError::MissingColon)?;
                 self.expect(Tokens::Less, ParserError::MissingLessSymbol)?;
                 loop {
                     generic_args.push(self.parse_type()?);
