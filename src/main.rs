@@ -3,6 +3,7 @@ use clap::Parser;
 use std::{fs, path::PathBuf};
 mod lexer;
 mod parser;
+mod HIR;
 
 #[derive(Debug, Parser)]
 #[command(about = "Compile a source file")]
@@ -23,5 +24,6 @@ fn main() {
     let lexemes = lexer::scanner::create_lexemes(&contents);
     let tokens = lexer::classify::classify_scanner(&lexemes);
 
-    let ast = ast_generate(&tokens).unwrap();
+    let mut ast = ast_generate(&tokens).unwrap();
+    let _hir = HIR::program::Hir::new(&mut ast).lower().unwrap();
 }

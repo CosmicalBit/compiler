@@ -2,9 +2,9 @@ use crate::lexer::classify::Tokens;
 use crate::parser::ast::{Expressions, Parser, ParserError, Result, Statement};
 
 #[derive(Debug, PartialEq, Eq)]
-pub(super) struct Block<'src> {
-    statements: Vec<Statement<'src>>,
-    tail: Option<Box<Expressions<'src>>>,
+pub(crate) struct Block<'src> {
+    pub(crate) statements: Vec<Statement<'src>>,
+    pub(crate) tail: Option<Box<Expressions<'src>>>,
 }
 
 impl<'src> Parser<'src> {

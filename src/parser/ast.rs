@@ -37,7 +37,7 @@ impl<'src> Parser<'src> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(super) enum Expressions<'src> {
+pub(crate) enum Expressions<'src> {
     Integer(i64),
     Identifier(&'src str),
     Call {
@@ -82,18 +82,18 @@ pub(super) enum Expressions<'src> {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub(super) enum UnaryOp {
+pub(crate) enum UnaryOp {
     Deref,
     Neg,
     Not,
 }
 #[derive(PartialEq, Eq, Debug)]
-pub(super) struct MatchArms<'src> {
-    pub(super) pattern: Pattern<'src>,
-    pub(super) body: Box<Expressions<'src>>,
+pub(crate) struct MatchArms<'src> {
+    pub(crate) pattern: Pattern<'src>,
+    pub(crate) body: Box<Expressions<'src>>,
 }
 #[derive(Debug, PartialEq, Eq)]
-pub(super) enum BinaryOp {
+pub(crate) enum BinaryOp {
     Add,
     Sub,
     Mul,
@@ -141,7 +141,7 @@ pub(crate) enum ParserError<'src> {
     MissingType,
 }
 #[derive(Debug, PartialEq, Eq)]
-pub(super) enum Statement<'src> {
+pub(crate) enum Statement<'src> {
     Let {
         name: &'src str,
         value: Expressions<'src>,
@@ -152,22 +152,22 @@ pub(super) enum Statement<'src> {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(super) struct Parameter<'src> {
-    pub(super) name: &'src str,
-    pub(super) var_type: Type<'src>,
+pub(crate) struct Parameter<'src> {
+    pub(crate) name: &'src str,
+    pub(crate) var_type: Type<'src>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct Function<'src> {
-    pub(super) name: &'src str,
-    pub(super) generic_parameter: Vec<GenericParam<'src>>,
-    pub(super) parameters: Vec<Parameter<'src>>,
-    pub(super) return_type: Type<'src>,
-    pub(super) body: crate::parser::block::Block<'src>,
+    pub(crate) name: &'src str,
+    pub(crate) generic_parameter: Vec<GenericParam<'src>>,
+    pub(crate) parameters: Vec<Parameter<'src>>,
+    pub(crate) return_type: Type<'src>,
+    pub(crate) body: crate::parser::block::Block<'src>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(super) enum Type<'src> {
+pub(crate) enum Type<'src> {
     Named(&'src str),
     Generic {
         typename: &'src str,
@@ -184,7 +184,7 @@ pub(super) enum Type<'src> {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub(super) enum Pattern<'src> {
+pub(crate) enum Pattern<'src> {
     Wildcard,
     Integer(i64),
     Constant(Box<Expressions<'src>>),
@@ -192,9 +192,9 @@ pub(super) enum Pattern<'src> {
 
 #[derive(PartialEq, Eq, Debug)]
 pub(crate) struct Struct<'src> {
-    pub(super) generic_parameters: Vec<GenericParam<'src>>,
-    pub(super) name: &'src str,
-    pub(super) fields: Vec<Parameter<'src>>,
+    pub(crate) generic_parameters: Vec<GenericParam<'src>>,
+    pub(crate) name: &'src str,
+    pub(crate) fields: Vec<Parameter<'src>>,
 }
 
 #[cfg(test)]

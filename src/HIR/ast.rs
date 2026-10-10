@@ -10,6 +10,7 @@ pub(crate) struct LocalId(pub u32);
 pub(crate) struct ItemId(pub u32);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+/// Identifies a field name across structs; equal names share an ID.
 pub(crate) struct FieldId(pub u32);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -173,4 +174,13 @@ pub(crate) enum PrimitiveType {
     U32,
     U64,
     USize,
+}
+#[derive(Debug, PartialEq, Eq)]
+pub(crate) enum HirError {
+    DuplicatedName(String),
+    UnknownName(String),
+    UnknownType(String),
+    UnknownField(String),
+    InvalidGenericType(String),
+    TooManyDefinitions,
 }
