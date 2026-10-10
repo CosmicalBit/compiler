@@ -18,4 +18,7 @@ impl<'src> Parser<'src> {
 
         Ok(Struct { name, fields })
     }
+
 }
+
+

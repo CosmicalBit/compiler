@@ -95,7 +95,13 @@ pub(super) enum BinaryOp {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum ParserError {
+    EmptyTurboFish,
+    EOF,
+    MissingLessSymbol,
+    MissingGreaterSymbol,
     ExpectedType,
+    MissingLifetimeName,
+    UnexpectedTokenInGenerics(Tokens),  
     MissingStructName,
     MissingStructDefinition,
     ExpectedField,
