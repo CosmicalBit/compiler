@@ -10,6 +10,7 @@ pub enum Tokens<'a> {
     VerticalBar,
     FowardSlash,
     Exclamation,
+    FatArrow,
     SemiColon,
     Colon,
     Comma,
@@ -43,6 +44,7 @@ pub enum Tokens<'a> {
     LessEqual,
     Or,
     And,
+    As,
 }
 #[derive(Clone, Debug)]
 pub(crate) enum Integers {
@@ -70,7 +72,9 @@ fn classify_scanner<'a>(scanned: &[Lexemes<'a>]) -> Vec<Tokens<'a>> {
                 "->" => Tokens::Arrow,
                 "fn" => Tokens::Fn,
                 "let" => Tokens::Let,
-
+                "as" => Tokens::As,
+                "match" => Tokens::Match,
+                "=>" => Tokens::FatArrow,
                 _ => match value.parse::<i64>() {
                     Ok(integer) => Tokens::Integer(integer),
                     Err(_) => Tokens::Other(value),

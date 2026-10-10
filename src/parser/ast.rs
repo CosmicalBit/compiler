@@ -1,4 +1,5 @@
 use crate::lexer::classify::Tokens;
+use crate::parser::block::Block;
 
 pub(crate) type Result<T> = std::result::Result<T, ParserError>;
 
@@ -37,8 +38,27 @@ pub(crate) enum Expressions<'src> {
         left: Box<Expressions<'src>>,
         right: Box<Expressions<'src>>,
     },
+    If {
+        condition: Box<Expressions<'src>>,
+        then_block: Block<'src>,
+        else_branch: Option<Box<Expressions<'src>>>,
+    },
+    Match {
+        scruntinne: Box<Expressions<'src>>,
+        arms: Vec<MatchArms<'src>>,
+    },
+    Cast {
+        expr: Box<Expressions<'src>>,
+        ty: Type<'src>,
+    },
+    Block(Block<'src>),
 }
 
+#[derive(PartialEq, Eq, Debug)]
+pub(crate) struct MatchArms<'src> {
+    pub(crate) pattern: Pattern<'src>,
+    pub(crate) body: Box<Expressions<'src>>,
+}
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum BinaryOp {
     Add,
@@ -49,6 +69,12 @@ pub(crate) enum BinaryOp {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum ParserError {
+    ExpectedComma,
+    ExpectedPattern,
+    MissingMatchStatemt,
+    MissingFatArrow,
+    MissingSemicolon,
+    MissingIfStatement,
     MissingFnName,
     MissingFn,
     MissingParameterName,
@@ -57,9 +83,11 @@ pub(crate) enum ParserError {
     MissingArrow,
     MissingFunctionBody,
     MissingLeftParen,
+    MissingLeftBrace,
     MissingLeftBracket,
     MissingLetStatement,
     MissingRightBracket,
+    MissingRightBrace,
     MissingEqualSign,
     MissingVarName,
     ExpectedExpression,
@@ -90,16 +118,23 @@ pub(crate) struct Function<'src> {
     pub(crate) return_type: Type<'src>,
     pub(crate) body: crate::parser::block::Block<'src>,
 }
-  
+
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Type<'src> {
     Named(&'src str),
-    Reference{
+    Reference {
         mutable: bool,
         inner: Box<Type<'src>>,
     },
-    Pointer{
+    Pointer {
         mutable: bool,
-        inner: Box<Type<'src>>
-    }
+        inner: Box<Type<'src>>,
+    },
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub(crate) enum Pattern<'src> {
+    Wildcard,
+    Integer(i64),
+    Constant(Box<Expressions<'src>>),
 }
