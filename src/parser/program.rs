@@ -10,7 +10,7 @@ pub(super) struct Program<'str> {
     pub(super) items: Vec<Item<'str>>,
 }
 
-pub(crate) fn ast_generate<'str>(tokens: &'str [Tokens]) -> Result<Vec<Item<'str>>> {
+pub(crate) fn ast_generate<'str>(tokens: &'str [Tokens<'str>]) -> Result<'str, Vec<Item<'str>>> {
     let mut parser = Parser::new(tokens);
 
     let mut items = Vec::new();

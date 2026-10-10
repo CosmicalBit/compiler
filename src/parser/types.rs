@@ -2,7 +2,7 @@ use crate::lexer::classify::Tokens;
 use crate::parser::ast::{Parser, ParserError, Result, Type};
 
 impl<'src> Parser<'src> {
-    pub(super) fn parse_type(&mut self) -> Result<Type<'src>> {
+    pub(super) fn parse_type(&mut self) -> Result<'src, Type<'src>> {
         match self.next() {
             Some(Tokens::Other(typename)) => Ok(Type::Named(typename)),
             Some(Tokens::Ampersant) => {

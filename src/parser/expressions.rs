@@ -1,7 +1,7 @@
 use crate::lexer::classify::Tokens;
 use crate::parser::ast::{BinaryOp, Expressions, MatchArms, Parser, ParserError, Pattern, Result};
 impl<'src> Parser<'src> {
-    fn parse_atom(&mut self) -> Result<Expressions<'src>> {
+    fn parse_atom(&mut self) -> Result<'src, Expressions<'src>> {
         if matches!(self.peek(), Some(Tokens::If)) {
             return self.parse_if();
         }
@@ -23,7 +23,7 @@ impl<'src> Parser<'src> {
             _ => Err(ParserError::ExpectedExpression),
         }
     }
-    pub(super) fn parse_expression(&mut self, min_bp: u8) -> Result<Expressions<'src>> {
+    pub(super) fn parse_expression(&mut self, min_bp: u8) -> Result<'src, Expressions<'src>> {
         let mut lhs = self.parse_atom()?;
 
         loop {
@@ -99,7 +99,7 @@ impl<'src> Parser<'src> {
         Ok(lhs)
     }
 
-    fn parse_if(&mut self) -> Result<Expressions<'src>> {
+    fn parse_if(&mut self) -> Result<'src, Expressions<'src>> {
         self.expect(Tokens::If, ParserError::MissingIfStatement)?;
 
         let condition = self.parse_expression(0)?;
@@ -123,7 +123,7 @@ impl<'src> Parser<'src> {
             else_branch,
         })
     }
-    fn parse_match(&mut self) -> Result<Expressions<'src>> {
+    fn parse_match(&mut self) -> Result<'src, Expressions<'src>> {
         self.expect(Tokens::Match, ParserError::MissingMatchStatemt)?;
         let scruntime = self.parse_expression(0)?;
 
@@ -154,7 +154,7 @@ impl<'src> Parser<'src> {
         })
     }
 
-    fn parse_pattern(&mut self) -> Result<Pattern<'src>> {
+    fn parse_pattern(&mut self) -> Result<'src, Pattern<'src>> {
         match self.next() {
             Some(Tokens::Integer(value)) => Ok(Pattern::Integer(*value)),
             Some(Tokens::Other("_")) => Ok(Pattern::Wildcard),

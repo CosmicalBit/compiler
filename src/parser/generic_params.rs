@@ -7,13 +7,14 @@ use crate::{
     },
 };
 
-pub(crate) enum GenericParam<'src, T, U> {
+#[derive(Debug, PartialEq,Eq)]
+pub(crate) enum GenericParam<'src> {
     Type(&'src str),
     Lifetime(&'src str),
 }
 
 impl<'src> Parser<'src> {
-    pub(crate) fn parse_generic_params(&mut self) -> Result<Vec<GenericParam<'src>>> {
+    pub(crate) fn parse_generic_params(&mut self) -> Result<'src, Vec<GenericParam<'src>>> {
         let mut params = Vec::new();
 
         if !matches!(self.peek(), Some(Tokens::Less)) {
@@ -50,5 +51,41 @@ impl<'src> Parser<'src> {
                 _ => return Err(ParserError::EOF),
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_type_and_lifetime_parameters_with_trailing_comma() {
+        let tokens = [
+            Tokens::Less,
+            Tokens::Other("T"),
+            Tokens::Comma,
+            Tokens::Tick,
+            Tokens::Other("a"),
+            Tokens::Comma,
+            Tokens::Bigger,
+        ];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(
+            parser.parse_generic_params(),
+            Ok(vec![GenericParam::Type("T"), GenericParam::Lifetime("a")])
+        );
+        assert_eq!(parser.peek(), None);
+    }
+
+    #[test]
+    fn reports_empty_and_unclosed_generic_parameters() {
+        let empty = [Tokens::Less, Tokens::Bigger];
+        let mut parser = Parser::new(&empty);
+        assert_eq!(parser.parse_generic_params(), Err(ParserError::EmptyGenericParams));
+
+        let unclosed = [Tokens::Less, Tokens::Other("T")];
+        let mut parser = Parser::new(&unclosed);
+        assert_eq!(parser.parse_generic_params(), Err(ParserError::EOF));
     }
 }

@@ -8,7 +8,7 @@ pub(super) struct Block<'src> {
 }
 
 impl<'src> Parser<'src> {
-    pub(super) fn parse_block(&mut self) -> Result<Block<'src>> {
+    pub(super) fn parse_block(&mut self) -> Result<'src, Block<'src>> {
         self.expect(Tokens::LeftBrace, ParserError::MissingLeftBrace)?;
 
         let mut statements = Vec::new();

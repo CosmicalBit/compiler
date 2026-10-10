@@ -24,6 +24,8 @@ pub enum Lexemes<'a> {
     Tick,
     RightBracket,
     Struct,
+    Less,
+    Bigger,
     Enum,
     Type,
     Match,
@@ -61,6 +63,8 @@ pub(crate) fn create_lexemes<'src>(text: &'src str) -> Vec<Lexemes<'src>> {
             "==" => Lexemes::EqualEqual,
             ">=" => Lexemes::GreaterEqual,
             "<=" => Lexemes::LessEqual,
+            "<" => Lexemes::Less,
+            ">" => Lexemes::Bigger,
             "||" => Lexemes::Or,
             "&&" => Lexemes::And,
             "^" => Lexemes::Caret,
@@ -87,4 +91,43 @@ pub(crate) fn create_lexemes<'src>(text: &'src str) -> Vec<Lexemes<'src>> {
     }
 
     lexemes_collection
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn scans_keywords_symbols_and_other_text() {
+        assert_eq!(
+            create_lexemes("fn name -> i64 { let x = 1 ; }"),
+            vec![
+                Lexemes::Other("fn"),
+                Lexemes::Other("name"),
+                Lexemes::Other("->"),
+                Lexemes::Other("i64"),
+                Lexemes::LeftBrace,
+                Lexemes::Other("let"),
+                Lexemes::Other("x"),
+                Lexemes::Equals,
+                Lexemes::Other("1"),
+                Lexemes::SemiColon,
+                Lexemes::RightBrace,
+            ]
+        );
+    }
+
+    #[test]
+    fn scans_all_recognized_multi_character_symbols() {
+        assert_eq!(
+            create_lexemes("== >= <= || &&"),
+            vec![
+                Lexemes::EqualEqual,
+                Lexemes::GreaterEqual,
+                Lexemes::LessEqual,
+                Lexemes::Or,
+                Lexemes::And,
+            ]
+        );
+    }
 }

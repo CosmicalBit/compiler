@@ -1,7 +1,8 @@
 use crate::lexer::classify::Tokens;
 use crate::parser::block::Block;
 
-pub(super) type Result<T> = std::result::Result<T, ParserError>;
+use crate::parser::generic_params::GenericParam;
+pub(super) type Result<'src, T> = std::result::Result<T, ParserError<'src>>;
 
 pub(crate) struct Parser<'src> {
     pub(crate) tokens: &'src [Tokens<'src>],
@@ -9,7 +10,7 @@ pub(crate) struct Parser<'src> {
 }
 
 impl<'src> Parser<'src> {
-    pub(crate) fn new(tokens: &'src [Tokens]) -> Self {
+    pub(crate) fn new(tokens: &'src [Tokens<'src>]) -> Self {
         Self { pos: 0, tokens }
     }
     pub(super) fn peek(&self) -> Option<&Tokens<'src>> {
@@ -21,7 +22,11 @@ impl<'src> Parser<'src> {
         Some(token)
     }
     /// Checks for and consumes the expected token.
-    pub(super) fn expect(&mut self, expected: Tokens<'src>, err: ParserError) -> Result<()> {
+    pub(super) fn expect(
+        &mut self,
+        expected: Tokens<'src>,
+        err: ParserError<'src>,
+    ) -> Result<'src, ()> {
         if self.peek() == Some(&expected) {
             self.next();
             Ok(())
@@ -94,14 +99,14 @@ pub(super) enum BinaryOp {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) enum ParserError {
-    EmptyTurboFish,
+pub(crate) enum ParserError<'src> {
+    EmptyGenericParams,
     EOF,
     MissingLessSymbol,
     MissingGreaterSymbol,
     ExpectedType,
     MissingLifetimeName,
-    UnexpectedTokenInGenerics(Tokens),  
+    UnexpectedTokenInGenerics(Tokens<'src>),
     MissingStructName,
     MissingStructDefinition,
     ExpectedField,
@@ -151,6 +156,7 @@ pub(super) struct Parameter<'src> {
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) struct Function<'src> {
     pub(super) name: &'src str,
+    pub(super) generic_parameter: Vec<GenericParam<'src>>,
     pub(super) parameters: Vec<Parameter<'src>>,
     pub(super) return_type: Type<'src>,
     pub(super) body: crate::parser::block::Block<'src>,
@@ -178,6 +184,7 @@ pub(super) enum Pattern<'src> {
 
 #[derive(PartialEq, Eq, Debug)]
 pub(crate) struct Struct<'src> {
+    pub(super) generic_parameters: Vec<GenericParam<'src>>,
     pub(super) name: &'src str,
     pub(super) fields: Vec<Parameter<'src>>,
 }

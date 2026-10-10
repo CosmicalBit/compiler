@@ -2,7 +2,7 @@ use crate::lexer::classify::Tokens;
 use crate::parser::ast::{Parser, ParserError, Result, Statement};
 
 impl<'src> Parser<'src> {
-    pub(super) fn parse_declaration(&mut self) -> Result<Statement<'src>> {
+    pub(super) fn parse_declaration(&mut self) -> Result<'src, Statement<'src>> {
         self.expect(Tokens::Let, ParserError::MissingLetStatement)?;
 
         let vname = match self.next() {

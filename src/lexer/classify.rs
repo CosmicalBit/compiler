@@ -1,8 +1,8 @@
 use crate::lexer::scanner::Lexemes;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub enum Tokens<'a> {
-    Other(&'a str),
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Tokens<'src> {
+    Other(&'src str),
     Integer(i64),
     GreaterThen,
     SmalledThen,
@@ -32,6 +32,8 @@ pub enum Tokens<'a> {
     Minus,
     Arrow,
     Fn,
+    Less,
+    Bigger,
     Struct,
     Enum,
     Tick,
@@ -77,7 +79,6 @@ pub(crate) fn classify_scanner<'a>(scanned: &[Lexemes<'a>]) -> Vec<Tokens<'a>> {
                 "as" => Tokens::As,
                 "match" => Tokens::Match,
                 "=>" => Tokens::FatArrow,
-
                 _ => match value.parse::<i64>() {
                     Ok(integer) => Tokens::Integer(integer),
                     Err(_) => Tokens::Other(value),
@@ -99,6 +100,8 @@ pub(crate) fn classify_scanner<'a>(scanned: &[Lexemes<'a>]) -> Vec<Tokens<'a>> {
             Lexemes::Equals => Tokens::Equals,
             Lexemes::EqualEqual => Tokens::EqualEqual,
             Lexemes::GreaterEqual => Tokens::GreaterEqual,
+            Lexemes::Less => Tokens::Less,
+            Lexemes::Bigger => Tokens::Bigger,
             Lexemes::LessEqual => Tokens::LessEqual,
             Lexemes::Or => Tokens::Or,
             Lexemes::And => Tokens::And,
@@ -124,4 +127,48 @@ pub(crate) fn classify_scanner<'a>(scanned: &[Lexemes<'a>]) -> Vec<Tokens<'a>> {
     }
 
     classified_lexemes
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn classifies_keywords_operators_and_integers() {
+        let scanned = [
+            Lexemes::Other("fn"),
+            Lexemes::Other("let"),
+            Lexemes::Other("as"),
+            Lexemes::Other("=>"),
+            Lexemes::Other("->"),
+            Lexemes::Other("-42"),
+            Lexemes::Other("name"),
+            Lexemes::Less,
+            Lexemes::Bigger,
+        ];
+
+        assert_eq!(
+            classify_scanner(&scanned),
+            vec![
+                Tokens::Fn,
+                Tokens::Let,
+                Tokens::As,
+                Tokens::FatArrow,
+                Tokens::Arrow,
+                Tokens::Integer(-42),
+                Tokens::Other("name"),
+                Tokens::Less,
+                Tokens::Bigger,
+            ]
+        );
+    }
+
+    #[test]
+    fn preserves_out_of_range_integer_as_other_text() {
+        let scanned = [Lexemes::Other("999999999999999999999999999999")];
+        assert_eq!(
+            classify_scanner(&scanned),
+            vec![Tokens::Other("999999999999999999999999999999")]
+        );
+    }
 }
