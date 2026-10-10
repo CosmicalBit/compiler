@@ -85,7 +85,6 @@ impl<'src> Parser<'src> {
 
     fn parse_if(&mut self) -> Result<Expressions<'src>> {
         self.expect(Tokens::If, ParserError::MissingIfStatement)?;
-        self.next();
 
         let condition = self.parse_expression(0)?;
         let then_block = self.parse_block()?;
@@ -110,17 +109,14 @@ impl<'src> Parser<'src> {
     }
     fn parse_match(&mut self) -> Result<Expressions<'src>> {
         self.expect(Tokens::Match, ParserError::MissingMatchStatemt)?;
-        self.next();
         let scruntime = self.parse_expression(0)?;
 
         self.expect(Tokens::LeftBracket, ParserError::MissingLeftBracket)?;
-        self.next();
 
         let mut arms = Vec::new();
         while !matches!(self.peek(), Some(Tokens::RightBracket) | None) {
             let pattern = self.parse_pattern()?;
             self.expect(Tokens::FatArrow, ParserError::MissingFatArrow)?;
-            self.next();
 
             let body = self.parse_expression(0)?;
 
@@ -136,7 +132,6 @@ impl<'src> Parser<'src> {
             }
         }
         self.expect(Tokens::RightBracket, ParserError::MissingRightBracket)?;
-        self.next();
         Ok(Expressions::Match {
             scruntinne: Box::new(scruntime),
             arms,

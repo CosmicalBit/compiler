@@ -20,13 +20,37 @@ impl<'src> Parser<'src> {
         self.pos += 1;
         Some(token)
     }
-    ///[`expect`] doesnt call self.next() aka doest consume token
-    pub(crate) fn expect(&self, expected: Tokens<'src>, err: ParserError) -> Result<()> {
+    /// Checks for and consumes the expected token.
+    pub(crate) fn expect(&mut self, expected: Tokens<'src>, err: ParserError) -> Result<()> {
         if self.peek() == Some(&expected) {
+            self.next();
             Ok(())
         } else {
             Err(err)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn expect_consumes_matching_token_only() {
+        let tokens = [Tokens::Let, Tokens::Other("next")];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(parser.expect(Tokens::Let, ParserError::MissingLetStatement), Ok(()));
+        assert_eq!(parser.peek(), Some(&Tokens::Other("next")));
+    }
+
+    #[test]
+    fn expect_leaves_unmatched_token_unconsumed() {
+        let tokens = [Tokens::Other("next")];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(parser.expect(Tokens::Let, ParserError::MissingLetStatement), Err(ParserError::MissingLetStatement));
+        assert_eq!(parser.peek(), Some(&Tokens::Other("next")));
     }
 }
 
@@ -79,6 +103,8 @@ pub(crate) enum BinaryOp {
 
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum ParserError {
+    MissingStructName,
+    MissingStructDefinition,
     ExpectedField,
     ExpectedComma,
     ExpectedPattern,
@@ -148,4 +174,10 @@ pub(crate) enum Pattern<'src> {
     Wildcard,
     Integer(i64),
     Constant(Box<Expressions<'src>>),
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub(crate) struct Struct<'src> {
+    pub(crate) name: &'src str,
+    pub(crate) fields: Vec<Parameter<'src>>,
 }

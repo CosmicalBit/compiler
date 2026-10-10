@@ -4,7 +4,6 @@ use crate::parser::ast::{Parser, ParserError, Result, Statement, Type};
 impl<'src> Parser<'src> {
     pub(crate) fn parse_declaration(&mut self) -> Result<Statement<'src>> {
         self.expect(Tokens::Let, ParserError::MissingLetStatement)?;
-        self.next();
 
         let vname = match self.next() {
             Some(Tokens::Other(name)) => name,
@@ -24,9 +23,8 @@ impl<'src> Parser<'src> {
 
         let exp = self.parse_expression(0)?;
 
-        //consume semicolon
-        self.expect(Tokens::SemiColon, ParserError::MissingSemicolon);
-        self.next();
+        // Consume the semicolon only after confirming it is present.
+        self.expect(Tokens::SemiColon, ParserError::MissingSemicolon)?;
 
         Ok(Statement::Let {
             name: vname,
@@ -79,5 +77,25 @@ mod tests {
             parser.parse_declaration(),
             Err(ParserError::MissingLetStatement)
         ));
+    }
+
+    #[test]
+    fn missing_declaration_semicolon_does_not_consume_next_token() {
+        let tokens = [
+            Tokens::Let,
+            Tokens::Other("answer"),
+            Tokens::Colon,
+            Tokens::Other("i64"),
+            Tokens::Equals,
+            Tokens::Integer(42),
+            Tokens::Other("next"),
+        ];
+        let mut parser = Parser::new(&tokens);
+
+        assert_eq!(
+            parser.parse_declaration(),
+            Err(ParserError::MissingSemicolon)
+        );
+        assert_eq!(parser.peek(), Some(&Tokens::Other("next")));
     }
 }

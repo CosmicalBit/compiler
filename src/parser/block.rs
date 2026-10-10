@@ -10,7 +10,6 @@ pub(crate) struct Block<'src> {
 impl<'src> Parser<'src> {
     pub(crate) fn parse_block(&mut self) -> Result<Block<'src>> {
         self.expect(Tokens::LeftBrace, ParserError::MissingLeftBrace)?;
-        self.next();
 
         let mut statements = Vec::new();
         let mut tail = None;
@@ -39,7 +38,6 @@ impl<'src> Parser<'src> {
         }
 
         self.expect(Tokens::RightBrace, ParserError::MissingRightBrace)?;
-        self.next();
 
         Ok(Block { statements, tail })
     }

@@ -3,10 +3,10 @@ use crate::parser::ast::{Expressions, Function, Parameter, Parser, ParserError, 
 
 impl<'src> Parser<'src> {
     /// Parse the contents of a function's parentheses.
-    pub(crate) fn parse_parameters(&mut self) -> Result<Vec<Parameter<'src>>> {
+    pub(crate) fn parse_named_types(&mut self, end: &Tokens<'src>) -> Result<Vec<Parameter<'src>>> {
         let mut parameters = Vec::new();
 
-        if matches!(self.peek(), Some(Tokens::RightParen)) {
+        if self.peek() == Some(end) {
             self.next();
             return Ok(parameters);
         }
@@ -25,7 +25,7 @@ impl<'src> Parser<'src> {
 
             match self.next() {
                 Some(Tokens::Comma) => continue,
-                Some(Tokens::RightParen) => return Ok(parameters),
+                Some(token) if token == end => return Ok(parameters),
                 _ => return Err(ParserError::MissingCommaOrRightParen),
             }
         }
@@ -54,7 +54,6 @@ impl<'src> Parser<'src> {
     //parses fn defenition
     pub(crate) fn parse_fn_definition(&mut self) -> Result<Function<'src>> {
         self.expect(Tokens::Fn, ParserError::MissingFn)?;
-        self.next();
 
         let name = match self.next() {
             Some(Tokens::Other(name)) => *name,
@@ -64,7 +63,7 @@ impl<'src> Parser<'src> {
             Some(Tokens::LeftParen) => (),
             _ => return Err(ParserError::MissingLeftParen),
         }
-        let parameters = self.parse_parameters()?;
+        let parameters = self.parse_named_types(&Tokens::RightParen)?;
         match self.next() {
             Some(Tokens::Arrow) => (),
             _ => return Err(ParserError::MissingArrow),
