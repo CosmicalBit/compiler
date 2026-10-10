@@ -103,6 +103,7 @@ pub(super) enum BinaryOp {
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum ParserError<'src> {
     MissingColon,
+    MissingBiggerSymbol,
     EmptyGenericParams,
     EOF,
     MissingLessSymbol,
@@ -168,6 +169,10 @@ pub(crate) struct Function<'src> {
 #[derive(Debug, PartialEq, Eq)]
 pub(super) enum Type<'src> {
     Named(&'src str),
+    Generic {
+        typename: &'src str,
+        args: Vec<Type<'src>>,
+    },
     Reference {
         mutable: bool,
         inner: Box<Type<'src>>,

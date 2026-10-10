@@ -4,7 +4,24 @@ use crate::parser::ast::{Parser, ParserError, Result, Type};
 impl<'src> Parser<'src> {
     pub(super) fn parse_type(&mut self) -> Result<'src, Type<'src>> {
         match self.next() {
-            Some(Tokens::Other(typename)) => Ok(Type::Named(typename)),
+            Some(Tokens::Other(typename)) => {
+                if matches!(self.peek(), Some(Tokens::Less)) {
+                    return Ok(Type::Named(typename));
+                }
+                self.next(); //consume <
+                let mut args = Vec::new();
+
+                loop {
+                    args.push(self.parse_type()?);
+
+                    match self.next() {
+                        Some(Tokens::Comma) => continue,
+                        Some(Tokens::Bigger) => break,
+                        _ => return Err(ParserError::MissingBiggerSymbol),
+                    }
+                }
+                Ok(Type::Generic { typename, args })
+            }
             Some(Tokens::Ampersant) => {
                 let mutable = matches!(self.peek(), Some(Tokens::Mut));
 

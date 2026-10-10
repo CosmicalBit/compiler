@@ -29,7 +29,9 @@ impl<'src> Parser<'src> {
 
         loop {
             let mut generic_args = Vec::new();
+
             if matches!(self.peek(), Some(Tokens::Colon)) {
+                self.expect(Tokens::Colon, ParserError::MissingColon)?;
                 self.expect(Tokens::Colon, ParserError::MissingColon)?;
                 self.expect(Tokens::Less, ParserError::MissingLessSymbol)?;
                 loop {
