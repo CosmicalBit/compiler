@@ -80,9 +80,10 @@ pub(crate) enum Statement {
     Expression(Expression),
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Expression {
-    Integer(i64),
+    Integer(i32),
+    Float(f64),
     Local(LocalId),
     Item(ItemId),
     Call {
@@ -123,11 +124,14 @@ pub(crate) enum Expression {
     Block(Block),
 }
 
+impl Eq for Expression {}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum BinaryOp {
     Add,
     Sub,
     Mul,
+    Eq,
     Divide,
 }
 
@@ -151,14 +155,37 @@ pub(crate) enum Pattern {
     Constant(Box<Expression>),
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum Type {
-    Named(ItemId),
-    Param(TypeParamId),
+    TypeParameter(TypeParamId),
     Primitive(PrimitiveType),
-    Generic { item: ItemId, args: Vec<Type> },
+    Named { id: ItemId, args: Vec<Type> },
     Reference { mutable: bool, inner: Box<Type> },
     Pointer { mutable: bool, inner: Box<Type> },
+}
+impl Type {
+    pub(crate) fn is_numerical(&self) -> bool {
+        match self {
+            Type::Primitive(PrimitiveType::Bool) => false,
+            Type::Primitive(_) => true,
+            _ => false,
+        }
+    }
+    pub(crate) fn supports_wq(ty: &Type) -> bool {
+        match ty {
+            Type::Primitive(_) => true,
+            Type::Named { args, .. } => {
+                for arg in args {
+                    if !Type::supports_wq(arg) {
+                        return false;
+                    }
+                }
+                true
+            }
+            Type::Reference { inner, .. } | Type::Pointer { inner, .. } => Type::supports_wq(inner),
+            Type::TypeParameter(_) => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -168,6 +195,7 @@ pub(crate) enum PrimitiveType {
     I16,
     I32,
     I64,
+    F64,
     ISize,
     U8,
     U16,

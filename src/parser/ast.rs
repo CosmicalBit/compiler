@@ -36,9 +36,10 @@ impl<'src> Parser<'src> {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Expressions<'src> {
-    Integer(i64),
+    Integer(i32),
+    Float(f64),
     Identifier(&'src str),
     Call {
         generic_args: Vec<Type<'src>>,
@@ -80,6 +81,10 @@ pub(crate) enum Expressions<'src> {
     },
     Block(Block<'src>),
 }
+
+// Float literals are compared by value in parser AST tests and contain IEEE
+// values, so keep the existing Eq bounds used by the surrounding AST types.
+impl Eq for Expressions<'_> {}
 
 #[derive(PartialEq, Eq, Debug)]
 pub(crate) enum UnaryOp {

@@ -10,12 +10,15 @@ impl<'src> Parser<'src> {
             _ => return Err(ParserError::MissingVarName),
         };
 
-        match self.next() {
-            Some(Tokens::Colon) => (),
-            _ => todo!("type inference not added"),
+        let vartype = match self.next() {
+            Some(Tokens::Colon) => Some(self.parse_type()?),
+            _ => {
+                self.next();
+                self.next();
+                None
+            }
         };
 
-        let vartype = self.parse_type()?;
         self.expect(Tokens::Equals, ParserError::MissingEqualSign)?;
 
         let exp = self.parse_expression(0)?;
@@ -26,7 +29,7 @@ impl<'src> Parser<'src> {
         Ok(Statement::Let {
             name: vname,
             value: exp,
-            var_type: Some(vartype),
+            var_type: vartype,
         })
     }
 }
@@ -55,7 +58,7 @@ mod tests {
             Statement::Let {
                 name: "answer",
                 value: crate::parser::ast::Expressions::Integer(42),
-                var_type: Some(Type::Named("i64")),  
+                var_type: Some(Type::Named("i64")),
             }
         ));
     }
@@ -70,7 +73,6 @@ mod tests {
             Err(ParserError::MissingLetStatement)
         ));
     }
-
 
     #[test]
     fn declaration_requires_equal_sign() {

@@ -10,7 +10,24 @@ impl<'src> Parser<'src> {
         }
 
         match self.next() {
-            Some(Tokens::Integer(value)) => Ok(Expressions::Integer(*value)),
+            Some(Tokens::Integer(value)) => {
+                if matches!(self.peek(), Some(Tokens::Dot)) {
+                    self.next();
+                    let mut literal = format!("{value}.");
+
+                    while let Some(Tokens::Integer(num)) = self.peek().copied() {
+                        self.next();
+                        literal.push_str(&num.to_string());
+                    }
+
+                    let value = literal
+                        .parse::<f64>()
+                        .map_err(|_| ParserError::ExpectedExpression)?;
+                    Ok(Expressions::Float(value))
+                } else {
+                    Ok(Expressions::Integer(*value as i32))
+                }
+            }
             Some(Tokens::Other(name)) => Ok(Expressions::Identifier(name)),
             Some(Tokens::LeftParen) => {
                 let expr = self.parse_expression(0)?;

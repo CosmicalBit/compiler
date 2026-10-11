@@ -191,9 +191,9 @@ impl Context<'_, '_> {
                 if let Some(p) = primitive(name) {
                     hir::Type::Primitive(p)
                 } else if let Some(id) = params.get(name) {
-                    hir::Type::Param(*id)
+                    hir::Type::TypeParameter(*id)
                 } else if let Some(id) = self.item_ids.get(name) {
-                    hir::Type::Named(*id)
+                    hir::Type::Named { id: *id, args: Vec::new() }
                 } else {
                     return Err(HirError::UnknownType((*name).into()));
                 }
@@ -206,8 +206,8 @@ impl Context<'_, '_> {
                     .item_ids
                     .get(typename)
                     .ok_or_else(|| HirError::UnknownType((*typename).into()))?;
-                hir::Type::Generic {
-                    item: *item,
+                hir::Type::Named {
+                    id: *item,
                     args: args
                         .iter()
                         .map(|arg| self.lower_type(arg, params))
@@ -273,6 +273,7 @@ impl Context<'_, '_> {
     ) -> Result<hir::Expression> {
         Ok(match expr {
             AE::Integer(value) => hir::Expression::Integer(*value),
+            AE::Float(value) => hir::Expression::Float(*value),
             AE::Identifier(name) => {
                 if let Some(id) = locals.lookup(name) {
                     hir::Expression::Local(id)
@@ -375,6 +376,7 @@ fn primitive(name: &str) -> Option<hir::PrimitiveType> {
         "i16" => hir::PrimitiveType::I16,
         "i32" => hir::PrimitiveType::I32,
         "i64" => hir::PrimitiveType::I64,
+        "f64" => hir::PrimitiveType::F64,
         "isize" => hir::PrimitiveType::ISize,
         "u8" => hir::PrimitiveType::U8,
         "u16" => hir::PrimitiveType::U16,
@@ -506,14 +508,14 @@ mod tests {
             panic!()
         };
         assert_eq!(first.fields[0].id, second.fields[0].id);
-        assert_eq!(first.fields[0].ty, hir::Type::Param(hir::TypeParamId(0)));
+        assert_eq!(first.fields[0].ty, hir::Type::TypeParameter(hir::TypeParamId(0)));
         let hir::Item::Function(read) = &program.items[2] else {
             panic!()
         };
         assert_eq!(
             read.parameters[0].ty,
-            hir::Type::Generic {
-                item: hir::ItemId(0),
+            hir::Type::Named {
+                id: hir::ItemId(0),
                 args: vec![hir::Type::Primitive(hir::PrimitiveType::I64)]
             }
         );
