@@ -25,7 +25,7 @@ impl<'src> Parser<'src> {
                         .map_err(|_| ParserError::ExpectedExpression)?;
                     Ok(Expressions::Float(value))
                 } else {
-                    Ok(Expressions::Integer(*value as i32))
+                    Ok(Expressions::Integer(*value))
                 }
             }
             Some(Tokens::Other(name)) => Ok(Expressions::Identifier(name)),

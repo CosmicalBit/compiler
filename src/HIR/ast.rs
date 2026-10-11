@@ -19,18 +19,18 @@ pub(crate) struct TypeParamId(pub u32);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct LifetimeId(pub u32);
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Program {
     pub(crate) items: Vec<Item>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Item {
     Function(Function),
     Struct(Struct),
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Function {
     pub(crate) id: ItemId,
     pub(crate) generics: Vec<GenericParam>,
@@ -39,7 +39,7 @@ pub(crate) struct Function {
     pub(crate) body: Block,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Struct {
     pub(crate) id: ItemId,
     pub(crate) generics: Vec<GenericParam>,
@@ -64,13 +64,13 @@ pub(crate) struct Field {
     pub(crate) ty: Type,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct Block {
     pub(crate) statements: Vec<Statement>,
     pub(crate) tail: Option<Box<Expression>>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Statement {
     Let {
         id: LocalId,
@@ -82,7 +82,7 @@ pub(crate) enum Statement {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Expression {
-    Integer(i32),
+    Integer(i64),
     Float(f64),
     Local(LocalId),
     Item(ItemId),
@@ -124,8 +124,6 @@ pub(crate) enum Expression {
     Block(Block),
 }
 
-impl Eq for Expression {}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum BinaryOp {
     Add,
@@ -142,13 +140,13 @@ pub(crate) enum UnaryOp {
     Not,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct MatchArm {
     pub(crate) pattern: Pattern,
     pub(crate) body: Expression,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum Pattern {
     Wildcard,
     Integer(i64),
@@ -169,21 +167,6 @@ impl Type {
             Type::Primitive(PrimitiveType::Bool) => false,
             Type::Primitive(_) => true,
             _ => false,
-        }
-    }
-    pub(crate) fn supports_wq(ty: &Type) -> bool {
-        match ty {
-            Type::Primitive(_) => true,
-            Type::Named { args, .. } => {
-                for arg in args {
-                    if !Type::supports_wq(arg) {
-                        return false;
-                    }
-                }
-                true
-            }
-            Type::Reference { inner, .. } | Type::Pointer { inner, .. } => Type::supports_wq(inner),
-            Type::TypeParameter(_) => false,
         }
     }
 }

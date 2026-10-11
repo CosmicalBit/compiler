@@ -38,7 +38,7 @@ impl<'src> Parser<'src> {
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Expressions<'src> {
-    Integer(i32),
+    Integer(i64),
     Float(f64),
     Identifier(&'src str),
     Call {
